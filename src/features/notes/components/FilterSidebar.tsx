@@ -22,7 +22,7 @@ export const FilterSidebar = ({ setFilters, setSort, sort, filters }: FilterSide
         <div className="button-group">
           <button onClick={() => setSort('active')} className={sort === 'active' ? 'active' : ''}>Active</button>
           <button onClick={() => setSort('new')} className={sort === 'new' ? 'active' : ''}>New</button>
-          <button onClick={() => setSort('hot')} className={sort === 'hot' ? 'active' : ''} disabled>Hot</button>
+          <button onClick={() => setSort('hot')} className={sort === 'hot' ? 'active' : ''}>Hot</button>
         </div>
       </div>
       <div className="control-group">

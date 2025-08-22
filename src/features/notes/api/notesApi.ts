@@ -8,6 +8,10 @@ interface SupabaseNote {
   author_username: string;
   tags: NoteTags;
   created_at: string;
+  updated_at?: string;
+  last_activity_at?: string;
+  reply_count?: number;
+  hot_score?: number;
 }
 
 const fromSupabase = (post: SupabaseNote): Note => ({
@@ -17,13 +21,15 @@ const fromSupabase = (post: SupabaseNote): Note => ({
   author: { id: post.author_username, username: post.author_username },
   tags: post.tags,
   createdAt: post.created_at,
-  lastActivityAt: post.created_at,
-  replyCount: 0,
+  lastActivityAt: post.last_activity_at ?? post.updated_at ?? post.created_at,
+  replyCount: post.reply_count ?? 0,
 });
 
 // Get all posts
 export const getNotes = async ({ filters, sort }: GetNotesParams): Promise<Note[]> => {
-  let query = supabase.from('notes').select('*');
+  // Use a view that includes activity metrics for active/hot sorting
+  const source = sort === 'active' || sort === 'hot' ? 'notes_with_activity' : 'notes';
+  let query = supabase.from(source).select('*');
   
   // Apply filters
   if (filters.game) {
@@ -42,10 +48,18 @@ export const getNotes = async ({ filters, sort }: GetNotesParams): Promise<Note[
       query = query.order('created_at', { ascending: false });
       break;
     case 'active':
-      query = query.order('created_at', { ascending: false }); // For now, same as new
+      // Prefer last activity if available, fall back to updated_at/created_at
+      query = query
+        .order('last_activity_at', { ascending: false, nullsFirst: false })
+        .order('updated_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false });
       break;
     case 'hot':
-      query = query.order('created_at', { ascending: false }); // For now, same as new
+      // Order by hot_score if present; otherwise roughly by recent activity
+      query = query
+        .order('hot_score', { ascending: false, nullsFirst: false })
+        .order('last_activity_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false });
       break;
   }
   
