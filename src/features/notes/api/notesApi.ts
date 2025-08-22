@@ -27,48 +27,61 @@ const fromSupabase = (post: SupabaseNote): Note => ({
 
 // Get all posts
 export const getNotes = async ({ filters, sort }: GetNotesParams): Promise<Note[]> => {
-  // Use a view that includes activity metrics for active/hot sorting
-  const source = sort === 'active' || sort === 'hot' ? 'notes_with_activity' : 'notes';
-  let query = supabase.from(source).select('*');
-  
-  // Apply filters
-  if (filters.game) {
-    query = query.eq('tags->>game', filters.game);
+  const wantsActivity = sort === 'active' || sort === 'hot';
+  const source = wantsActivity ? 'notes_with_activity' : 'notes';
+
+  const buildQuery = (table: string) => {
+    let q = supabase.from(table).select('*');
+    if (filters.game) q = q.eq('tags->>game', filters.game);
+    if (filters.platform) q = q.eq('tags->>platform', filters.platform);
+    if (filters.skillLevel) q = q.eq('tags->>skillLevel', filters.skillLevel);
+
+    switch (sort) {
+      case 'new':
+        q = q.order('created_at', { ascending: false });
+        break;
+      case 'active':
+        if (table === 'notes_with_activity') {
+          q = q
+            .order('last_activity_at', { ascending: false, nullsFirst: false })
+            .order('updated_at', { ascending: false, nullsFirst: false })
+            .order('created_at', { ascending: false });
+        } else {
+          // Fallback when view doesn't exist
+          q = q.order('created_at', { ascending: false });
+        }
+        break;
+      case 'hot':
+        if (table === 'notes_with_activity') {
+          q = q
+            .order('hot_score', { ascending: false, nullsFirst: false })
+            .order('last_activity_at', { ascending: false, nullsFirst: false })
+            .order('created_at', { ascending: false });
+        } else {
+          // Fallback when view doesn't exist
+          q = q.order('created_at', { ascending: false });
+        }
+        break;
+    }
+    return q;
+  };
+
+  // First attempt (view when needed)
+  let { data, error } = await buildQuery(source);
+
+  // Graceful fallback if the view isn't present yet in the DB
+  if (error && wantsActivity) {
+    const res = await buildQuery('notes');
+    const { data: fallbackData, error: fallbackError } = await res;
+    if (fallbackError) {
+      throw new Error(`Failed to fetch notes: ${fallbackError.message}`);
+    }
+    return (fallbackData || []).map(fromSupabase);
   }
-  if (filters.platform) {
-    query = query.eq('tags->>platform', filters.platform);
-  }
-  if (filters.skillLevel) {
-    query = query.eq('tags->>skillLevel', filters.skillLevel);
-  }
-  
-  // Apply sorting
-  switch (sort) {
-    case 'new':
-      query = query.order('created_at', { ascending: false });
-      break;
-    case 'active':
-      // Prefer last activity if available, fall back to updated_at/created_at
-      query = query
-        .order('last_activity_at', { ascending: false, nullsFirst: false })
-        .order('updated_at', { ascending: false, nullsFirst: false })
-        .order('created_at', { ascending: false });
-      break;
-    case 'hot':
-      // Order by hot_score if present; otherwise roughly by recent activity
-      query = query
-        .order('hot_score', { ascending: false, nullsFirst: false })
-        .order('last_activity_at', { ascending: false, nullsFirst: false })
-        .order('created_at', { ascending: false });
-      break;
-  }
-  
-  const { data, error } = await query;
-  
+
   if (error) {
     throw new Error(`Failed to fetch notes: ${error.message}`);
   }
-  
   return (data || []).map(fromSupabase);
 };
 
