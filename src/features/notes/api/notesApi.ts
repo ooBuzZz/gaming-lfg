@@ -35,6 +35,7 @@ export const getNotes = async ({ filters, sort }: GetNotesParams): Promise<Note[
     if (filters.game) q = q.eq('tags->>game', filters.game);
     if (filters.platform) q = q.eq('tags->>platform', filters.platform);
     if (filters.skillLevel) q = q.eq('tags->>skillLevel', filters.skillLevel);
+    if (filters.playtimeWindow) q = q.eq('tags->>playtimeWindow', filters.playtimeWindow);
 
     switch (sort) {
       case 'new':

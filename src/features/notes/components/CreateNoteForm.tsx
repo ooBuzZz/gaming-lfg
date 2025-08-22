@@ -1,7 +1,7 @@
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createNote } from '../api/notesApi';
-import type { NoteTags, Platform, Region, SkillLevel } from '../types';
+import type { NoteTags, Platform, Region, SkillLevel, PlaytimeWindow } from '../types';
 
 interface FormInputs {
   title: string;
@@ -11,6 +11,7 @@ interface FormInputs {
   region: Region;
   skillLevel: SkillLevel;
   voice: boolean;
+  playtimeWindow: PlaytimeWindow;
 }
 
 interface CreateNoteFormProps {
@@ -36,6 +37,7 @@ export const CreateNoteForm = ({ onClose }: CreateNoteFormProps) => {
       region: data.region,
       skillLevel: data.skillLevel,
       voice: data.voice,
+      playtimeWindow: data.playtimeWindow,
     };
 
     createNoteMutation.mutate({
@@ -117,6 +119,16 @@ export const CreateNoteForm = ({ onClose }: CreateNoteFormProps) => {
           <option value="Pro">Pro</option>
         </select>
         {errors.skillLevel && <span className="error">Please select a skill level</span>}
+
+        <select {...register("playtimeWindow", { required: true })}>
+          <option value="">Select Playtime Window</option>
+          <option value="Morning">Morning</option>
+          <option value="Afternoon">Afternoon</option>
+          <option value="Evening">Evening</option>
+          <option value="Night">Night</option>
+          <option value="Late Night">Late Night</option>
+        </select>
+        {errors.playtimeWindow && <span className="error">Please select a playtime window</span>}
 
         <label>
           <input type="checkbox" {...register("voice")} />

@@ -9,6 +9,7 @@ export type SkillLevel =
   | 'Diamond'
   | 'Master'
   | 'Pro';
+export type PlaytimeWindow = 'Morning' | 'Afternoon' | 'Evening' | 'Night' | 'Late Night';
 
 export interface Author {
   id: string;
@@ -21,6 +22,7 @@ export interface NoteTags {
   region: Region;
   skillLevel?: SkillLevel; // optional
   voice: boolean;
+  playtimeWindow?: PlaytimeWindow; // optional
 }
 
 export interface Note {
@@ -39,6 +41,7 @@ export interface NoteFilters {
   game?: string;
   platform?: Platform;
   skillLevel?: SkillLevel;
+  playtimeWindow?: PlaytimeWindow;
 }
 
 export interface GetNotesParams {

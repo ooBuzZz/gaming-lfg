@@ -29,6 +29,7 @@ export const NoteItem = ({ note }: { note: Note }) => {
           <span className="tag platform">{note.tags.platform}</span>
           <span className="tag region">{note.tags.region}</span>
           {note.tags.skillLevel && <span className="tag skill-level">{note.tags.skillLevel}</span>}
+          {note.tags.playtimeWindow && <span className="tag playtime-window">{note.tags.playtimeWindow}</span>}
           {note.tags.voice && <span className="tag voice">Mic</span>}
         </div>
       </Link>

@@ -76,6 +76,17 @@ export const FilterSidebar = ({ setFilters, setSort, sort, filters }: FilterSide
           <option value="Pro">Pro</option>
         </select>
       </div>
+      <div className="control-group">
+        <label htmlFor="playtimeWindow">Playtime Window</label>
+        <select id="playtimeWindow" name="playtimeWindow" onChange={handleFilterChange} value={filters.playtimeWindow || 'all'}>
+          <option value="all">All Times</option>
+          <option value="Morning">Morning</option>
+          <option value="Afternoon">Afternoon</option>
+          <option value="Evening">Evening</option>
+          <option value="Night">Night</option>
+          <option value="Late Night">Late Night</option>
+        </select>
+      </div>
     </aside>
   );
 };
